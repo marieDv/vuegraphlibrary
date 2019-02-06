@@ -28,14 +28,14 @@
         },
         props: {
             inputJSON: {},
-            dataKey: {default: "name"},
-            modelColor: {default: "#a2a2a2"},
-            dim: {default: 5},
-            perplexity: {default: 50},
-            earlyExaggeration: {default: 4.0},
-            learningRate: {default: 100.9},
-            nIter: {default: 3500,},
-            metric: {default: "euclidean"}
+            dataKey: {default: "", type: String},
+            modelColor: {default: "#a2a2a2", type: String},
+            dim: {default: 5, type: Number},
+            perplexity: {default: 50, type: Number},
+            earlyExaggeration: {default: 4.0, type: Number},
+            learningRate: {default: 100.9, type: Number},
+            nIter: {default: 3500, type: Number},
+            metric: {default: "euclidean", type: String}
         },
         methods: {
             init: function () {
@@ -69,7 +69,7 @@
                 setTimeout(() => {
 //                    this.pointsContainer.rotation.y += 0.002;
 //                    this.pointsContainer.rotation.z += 0.002;
-                    this.remapTextlabels();
+//                    this.remapTextlabels();
                 }, 1000 / 30);
                 requestAnimationFrame(this.animate);
 
@@ -95,26 +95,19 @@
 
             },
             createTextLabels() {
-//                dataKey inputJSON
+
                 var box = document.getElementById("textbox");
                 let jsonKeys = Object.values(this.inputJSON);
-//                let parsedJson = JSON.parse(this.inputJSON);
                 for (let i = 0; i < jsonKeys.length; i++) {
                     let label = document.createElement('p');
-                    let localKey = toString(this.dataKey);//TODO: key replacement
-                    console.log(jsonKeys[i])
-                    label.innerHTML = jsonKeys[i].country;
-//                    label.style.marginTop = "50px";
-                    let calcs = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
-                    label.style.marginTop = (this.toScreenPosition(this.pointsContainer.children[i], this.camera).y + window.innerHeight / 2) + "px";
-                    label.style.marginLeft = ((calcs.x) * 2 + window.innerWidth / 2) + "px";
+                    label.innerHTML = jsonKeys[i][String(this.dataKey)];
+                    let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
+                    label.style.marginTop = (currentPos.y + window.innerHeight / 2) + "px";
+                    label.style.marginLeft = ((currentPos.x) * 2 + window.innerWidth / 2) + "px";
                     box.appendChild(label);
                 }
-
-
             },
             remapTextlabels() {
-
                 let children = document.getElementById("textbox").childNodes;
                 for (let i = 0; i < this.pointsContainer.children.length; i++) {
                     let vector = new THREE.Vector3();
@@ -147,7 +140,6 @@
                 });
 
                 let output = model.getOutput();
-                console.log(output)
                 this.tsneInputData = output;
 
                 setTimeout(() => {
@@ -180,6 +172,8 @@
                 this.animate();
             }, 1000 / 30)
 
+        },
+        install (Vue, options) {
         }
     }
 </script>

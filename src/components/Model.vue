@@ -1,6 +1,7 @@
 <template>
-    <div v-on:scroll="remapTextlabels" v-on:click="remapTextlabels" id="container">
-        <textlabels></textlabels>
+    <div id="container">
+        <!--<textlabels></textlabels>-->
+        <!--v-on:scroll="remapTextlabels" v-on:click="remapTextlabels"-->
     </div>
 </template>
 
@@ -8,6 +9,7 @@
     import * as Three from 'three'
     import Model from './Textlabels'
     import json from '../data/colors.json'
+    //    import imageOne from '../assets/leaves/iPAD2_C01_EX01_B.TIFF'
 
     export default {
         name: 'Model',
@@ -23,52 +25,64 @@
                 once: false,
                 pointsContainer: new THREE.Object3D(),
                 tsneInputData: null,
+                error: "",
+                iteration: ""
 
             }
         },
         props: {
             inputJSON: {},
-            dataKey: {default: "", type: String},
+            dataKey: {default: "", type: Array},
             modelColor: {default: "#a2a2a2", type: String},
-            dim: {default: 5, type: Number},
+            dim: {default: 1, type: Number},
             perplexity: {default: 50, type: Number},
             earlyExaggeration: {default: 4.0, type: Number},
             learningRate: {default: 100.9, type: Number},
             nIter: {default: 3500, type: Number},
-            metric: {default: "euclidean", type: String}
+            metric: {default: "euclidean", type: String},
+            hasImages: {default: false, type: Boolean},
+            hr: {default: true, type: Boolean}
         },
         methods: {
             init: function () {
                 let container = document.getElementById('container');
 
-                this.camera = new Three.PerspectiveCamera(70, container.clientWidth / container.clientHeight, 0.01, 1000);
+//                this.camera = new Three.PerspectiveCamera(190, container.clientWidth / container.clientHeight, 0.002, 2000);
+                this.camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.00002, 200);
+
                 this.camera.position.z = 1;
                 this.scene = new Three.Scene();
 
-                var light = new THREE.AmbientLight('#fff', 0.7); // soft white light
+                var light = new THREE.AmbientLight('#fff', 1.7); // soft white light
                 this.scene.add(light);
 
                 var light = new THREE.PointLight(0xffffff, 1, 100);
-                light.position.set(0, 10, 0);
+                light.position.set(0, -1, 1);
                 light.castShadow = true;            // default false
+
+
+                var sphereSize = 1;
+                var pointLightHelper = new THREE.PointLightHelper(light, sphereSize);
+
                 this.scene.add(light);
 
                 this.renderer = new Three.WebGLRenderer({antialias: true});
                 this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setClearColor("#ffffff", 1);
 
                 const controls = new OrbitControls(this.camera, this.renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.25;
+                controls.enableDamping = false;
+                controls.dampingFactor = 0.85;
                 controls.enableZoom = true;
-
+                controls.maxDistance = 10;
 
                 container.appendChild(this.renderer.domElement);
 
             },
             animate: function () {
                 setTimeout(() => {
-//                    this.pointsContainer.rotation.y += 0.002;
-//                    this.pointsContainer.rotation.z += 0.002;
+//                    this.pointsContainer.rotation.y += 52;
+//                    this.pointsContainer.rotation.z += 52;
 //                    this.remapTextlabels();
                 }, 1000 / 30);
                 requestAnimationFrame(this.animate);
@@ -100,7 +114,9 @@
                 let jsonKeys = Object.values(this.inputJSON);
                 for (let i = 0; i < jsonKeys.length; i++) {
                     let label = document.createElement('p');
-                    label.innerHTML = jsonKeys[i][String(this.dataKey)];
+                    for (let j = 0; j < this.dataKey.length; j++) {
+                        label.innerHTML += jsonKeys[i][String(this.dataKey[j])] + "</br>";
+                    }
                     let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
                     label.style.marginTop = (currentPos.y + window.innerHeight / 2) + "px";
                     label.style.marginLeft = ((currentPos.x) * 2 + window.innerWidth / 2) + "px";
@@ -119,9 +135,29 @@
                     this.pointsContainer.updateMatrixWorld();
                     this.scene.updateMatrixWorld();
 
+
                 }
 
 
+            },
+
+            mapImages(i, material) {
+                var loader = new THREE.TextureLoader();
+                loader.load(
+                    i < 9 ? require('../assets/leaves/png/iPAD2_C0' + (i + 1) + '_EX01_B.png') : require('../assets/leaves/png/iPAD2_C' + (i + 1) + '_EX01_B.png'),//../assets/leaves/iPAD2_C0\' + i + \'_EX04_B.TIFF'
+                    function (texture) {
+
+                        texture.repeat.set(1, 1);
+                        material = new THREE.MeshStandardMaterial({
+                            flatshading: true,
+                            map: texture
+                        });
+                        setTimeout(() => {
+                            return material;
+                        }, 300)
+
+                    },
+                );
             },
             createTsne() {
 
@@ -133,30 +169,83 @@
                     nIter: this.nIter,
                     metric: this.metric
                 });
-
+//                let tempJSON = [];
+//                for (let i = 0; i < 500; i++) {
+//                    tempJSON[i] =  this.inputJSON[i];
+//
+//                }
+//                console.log(tempJSON)
+//                console.log(this.inputJSON)
                 model.init({
                     data: this.inputJSON,
                     type: 'dense'
                 });
-
+                model.run();
+                model.rerun();
                 let output = model.getOutput();
+
                 this.tsneInputData = output;
 
                 setTimeout(() => {
-                    let geometry = new Three.SphereGeometry(0.008, 0.008, 0.02);
-                    let material = new Three.MeshPhongMaterial({color: this.modelColor});
+                    var geometry = new THREE.BufferGeometry();
+                    var vertices = new Float32Array([
+                        -1, -1, 1,
+                        1, -1, 1,
+                        1, 1, 1,
+
+                        1, 1, 1,
+                        -1, 1, 1,
+                        -1, -1, 1
+                    ]);
+                    var uvs = new Float32Array([
+                        0, 0, 0.9,
+                        0.9, 0, 0.9,
+                        0.9, 0.9, 0.9,
+
+                        0.9, 0.9, 0.9,
+                        0, 0.9, 0.9,
+                        0, 0, 0.9
+                    ])
+                    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                    geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 3))
+                    geometry.computeVertexNormals()
 
                     for (let i = 0; i < this.tsneInputData.length; i++) {
-                        var sphere = new THREE.Mesh(geometry, material);
-                        sphere.position.set(this.tsneInputData[i][0] * 600, this.tsneInputData[i][1] * 600, this.tsneInputData[i][2] * 600)
-                        sphere.geometry.verticesNeedUpdate = true;
-                        sphere.matrixAutoUpdate = true;
-                        this.pointsContainer.add(sphere);
+                        let material;
+                        if (this.hasImages) {
+                            var loader = new THREE.TextureLoader();
+                            loader.load(
+                                i < 9 ? require('../assets/leaves/png/iPAD2_C0' + (i + 1) + '_EX01_B.png') : require('../assets/leaves/png/iPAD2_C' + (i + 1) + '_EX01_B.png'),//../assets/leaves/iPAD2_C0\' + i + \'_EX04_B.TIFF'
+                                function (texture) {
+
+                                    texture.repeat.set(1, 1);
+                                    material = new THREE.MeshStandardMaterial({
+                                        flatshading: true,
+                                        map: texture
+                                    });
+                                    setTimeout(() => {
+                                        return material;
+                                    }, 300)
+
+                                },
+                            );
+                        } else {
+                            material = new THREE.MeshStandardMaterial({color: this.modelColor, flatShading: true});
+                        }
+                        setTimeout(() => {
+
+                            var sphere = new THREE.Mesh(geometry, material);
+
+
+                            sphere.position.set(this.tsneInputData[i][0] * 70000, this.tsneInputData[i][1] * 70000, this.tsneInputData[i][2] * 70000)
+                            this.pointsContainer.add(sphere);
+                        }, 400);
 
                     }
-                    this.scene.add(this.pointsContainer);
+                    this.pointsContainer.position.z -= 20;
+                    this.scene.add(this.pointsContainer);//pointsContainer ist ein globales 3D-Objekt in das die Datenpunktobjekte gespeichert werden.
                     setTimeout(() => {
-                        this.createTextLabels();
+//                        this.createTextLabels();
                     }, 200)
                 }, 300)
 
@@ -173,7 +262,7 @@
             }, 1000 / 30)
 
         },
-        install (Vue, options) {
+        install(Vue, options) {
         }
     }
 </script>

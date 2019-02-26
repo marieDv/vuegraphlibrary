@@ -32,7 +32,6 @@
         },
         props: {
             inputJSON: {},
-            dataKey: {default: "", type: Array},
             modelColor: {default: "#a2a2a2", type: String},
             dim: {default: 1, type: Number},
             perplexity: {default: 50, type: Number},
@@ -41,16 +40,17 @@
             nIter: {default: 3500, type: Number},
             metric: {default: "euclidean", type: String},
             hasImages: {default: false, type: Boolean},
-            hr: {default: true, type: Boolean}
+            labels: {default: null,type: Array}
         },
         methods: {
             init: function () {
                 let container = document.getElementById('container');
 
 //                this.camera = new Three.PerspectiveCamera(190, container.clientWidth / container.clientHeight, 0.002, 2000);
-                this.camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.00002, 200);
+                this.camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.00002, 800);
 
-                this.camera.position.z = 1;
+                this.camera.position.z = 40;
+                this.camera.rotation.x = 1.5;
                 this.scene = new Three.Scene();
 
                 var light = new THREE.AmbientLight('#fff', 1.7); // soft white light
@@ -58,7 +58,7 @@
 
                 var light = new THREE.PointLight(0xffffff, 1, 100);
                 light.position.set(0, -1, 1);
-                light.castShadow = true;            // default false
+                light.castShadow = true;
 
 
                 var sphereSize = 1;
@@ -74,7 +74,7 @@
                 controls.enableDamping = false;
                 controls.dampingFactor = 0.85;
                 controls.enableZoom = true;
-                controls.maxDistance = 10;
+                controls.maxDistance = 20;
 
                 container.appendChild(this.renderer.domElement);
 
@@ -83,7 +83,7 @@
                 setTimeout(() => {
 //                    this.pointsContainer.rotation.y += 52;
 //                    this.pointsContainer.rotation.z += 52;
-//                    this.remapTextlabels();
+                    if(this.labels != null){this.remapTextlabels();}
                 }, 1000 / 30);
                 requestAnimationFrame(this.animate);
 
@@ -111,16 +111,16 @@
             createTextLabels() {
 
                 var box = document.getElementById("textbox");
-                let jsonKeys = Object.values(this.inputJSON);
-                for (let i = 0; i < jsonKeys.length; i++) {
+                for (let i = 0; i < this.labels.length; i++) {
                     let label = document.createElement('p');
-                    for (let j = 0; j < this.dataKey.length; j++) {
-                        label.innerHTML += jsonKeys[i][String(this.dataKey[j])] + "</br>";
-                    }
-                    let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
-                    label.style.marginTop = (currentPos.y + window.innerHeight / 2) + "px";
-                    label.style.marginLeft = ((currentPos.x) * 2 + window.innerWidth / 2) + "px";
-                    box.appendChild(label);
+                    label.innerHTML += this.labels[i] + "</br>";
+                    console.log(this.pointsContainer)
+                    setTimeout(() => {
+                        let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
+                        label.style.marginTop = (currentPos.y + container.clientHeight /2) + "px";
+                        label.style.marginLeft = ((currentPos.x) * 2 + container.clientWidth /2) + "px";
+                        box.appendChild(label);
+                    }, 200)
                 }
             },
             remapTextlabels() {
@@ -169,13 +169,6 @@
                     nIter: this.nIter,
                     metric: this.metric
                 });
-//                let tempJSON = [];
-//                for (let i = 0; i < 500; i++) {
-//                    tempJSON[i] =  this.inputJSON[i];
-//
-//                }
-//                console.log(tempJSON)
-//                console.log(this.inputJSON)
                 model.init({
                     data: this.inputJSON,
                     type: 'dense'
@@ -237,15 +230,17 @@
                             var sphere = new THREE.Mesh(geometry, material);
 
 
-                            sphere.position.set(this.tsneInputData[i][0] * 70000, this.tsneInputData[i][1] * 70000, this.tsneInputData[i][2] * 70000)
+                            sphere.position.set(this.tsneInputData[i][0] * 40000, this.tsneInputData[i][1] * 40000, this.tsneInputData[i][2] * 40000)
                             this.pointsContainer.add(sphere);
                         }, 400);
 
                     }
-                    this.pointsContainer.position.z -= 20;
+                    this.pointsContainer.position.z -= 5;
                     this.scene.add(this.pointsContainer);//pointsContainer ist ein globales 3D-Objekt in das die Datenpunktobjekte gespeichert werden.
                     setTimeout(() => {
-//                        this.createTextLabels();
+                        if (this.labels != null) {
+                            this.createTextLabels()
+                        }
                     }, 200)
                 }, 300)
 

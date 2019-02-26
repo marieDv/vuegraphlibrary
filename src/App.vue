@@ -3,16 +3,17 @@
         <model v-bind:inputJSON="jsonFile"
                v-bind:modelColor="color"
                v-bind:dim="definedDim"
-               v-bind:dataKey="currentName"
                v-bind:perplexity="definedPerplexity"
                v-bind:earlyExaggeration="definedEarlyExaggeration"
                v-bind:learningRate="definedLearningRate"
                v-bind:nIter="definedNIter"
                v-bind:metric="definedMetric"
                v-bind:hasImages=true
+               v-bind:labels="leaveNames"
         >
         </model>
-        <!--<!--v-bind:dataKey="currentName"-->-->
+        <!--v-bind:labels="leaveNames"-->
+
         <div id="textbox"></div>
     </div>
 </template>
@@ -38,17 +39,17 @@
         data() {
             return {
                 definedDim: 3,
-                definedPerplexity: 150,
+                definedPerplexity: 31,
                 definedEarlyExaggeration: 1,
-                definedLearningRate: 200.0,
-                definedNIter: 320,
+                definedLearningRate: 500.0,
+                definedNIter: 220,
                 definedMetric: "euclidean",
                 color: '#4286f4',
                 currentName: ["label"],
                 jsonFile: csv,
-                leaveNames: ["Quercus suber", "Salix atrocinerea", "Populus nigra","Alnus sp", "Quercus robur", " Crataegus monogyna"," Ilex aquifolium", "Nerium oleander", "Betula pubescens","Quercus suber", "", ""
-                    "Quercus suber", "", "","Quercus suber", "", "","Quercus suber", "", ""
-                    "Quercus suber", "", "","Quercus suber", "", "","Quercus suber", "", ""]
+                leaveNames: ["Quercus suber", "Salix atrocinerea", "Populus nigra","Alnus sp", "Quercus robur", " Crataegus monogyna"," Ilex aquifolium", "Nerium oleander", "Betula pubescens","Tilia tomentosa", "Acer palmaturu", "Celtis sp",
+                    "Corylus avellana", "Castanea sativa", "Populus alba"," Primula vulgaris", "Erodium sp", "Bougainvillea sp","Arisarum vulgare", "Euonymus japonicus", " Ilex perado ssp azorica",
+                    "Magnolia soulangeana", "Buxus sempervirens", "Urtica dioica","Podocarpus sp", " Acca sellowiana", "Hydrangea sp","Pseudosasa japonica", "Magnolia grandiflora", "Geranium sp"]
             }
         },
         methods: {
@@ -73,7 +74,9 @@
         height: 100vh;
         pointer-events: none;
         font-size: 0.1rem;
-        color: #fff;
+        color: #1738ff;
+        font-family: "Montserrat";
+        text-transform: uppercase;
         text-align: center;
     }
 

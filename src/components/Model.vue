@@ -68,7 +68,7 @@
 
                 this.renderer = new Three.WebGLRenderer({antialias: true});
                 this.renderer.setSize(container.clientWidth, container.clientHeight);
-                this.renderer.setClearColor("#ffffff", 1);
+                this.renderer.setClearColor("#1d1d1d", 1);
 
                 const controls = new OrbitControls(this.camera, this.renderer.domElement);
                 controls.enableDamping = false;

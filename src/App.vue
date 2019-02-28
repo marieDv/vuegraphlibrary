@@ -74,7 +74,7 @@
         height: 100vh;
         pointer-events: none;
         font-size: 0.1rem;
-        color: #1738ff;
+        color: #bcb8c0;
         font-family: "Montserrat";
         text-transform: uppercase;
         text-align: center;
@@ -86,7 +86,7 @@
         margin-top: 50vh;
         left: -50vw;
         right: 0;
-
+        letter-spacing: 1.2px;
         top: -50vh;
         left: -150vw;
     }

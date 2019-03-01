@@ -49,12 +49,17 @@
 //                this.camera = new Three.PerspectiveCamera(190, container.clientWidth / container.clientHeight, 0.002, 2000);
                 this.camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.00002, 800);
 
-                this.camera.position.z = 40;
+                this.camera.position.z = 20;
                 this.camera.rotation.x = 1.5;
                 this.scene = new Three.Scene();
 
                 var light = new THREE.AmbientLight('#fff', 1.7); // soft white light
                 this.scene.add(light);
+
+                const color = "#c5c7cf";  // white
+                const near = 1;
+                const far = 60;
+                this.scene.fog = new THREE.Fog(color, near, far);
 
                 var light = new THREE.PointLight(0xffffff, 1, 100);
                 light.position.set(0, -1, 1);
@@ -68,13 +73,13 @@
 
                 this.renderer = new Three.WebGLRenderer({antialias: true});
                 this.renderer.setSize(container.clientWidth, container.clientHeight);
-                this.renderer.setClearColor("#1d1d1d", 1);
+                this.renderer.setClearColor("#181818", 1);
 
                 const controls = new OrbitControls(this.camera, this.renderer.domElement);
                 controls.enableDamping = false;
                 controls.dampingFactor = 0.85;
                 controls.enableZoom = true;
-                controls.maxDistance = 20;
+                controls.maxDistance = 30;
 
                 container.appendChild(this.renderer.domElement);
 
@@ -235,7 +240,7 @@
                         }, 400);
 
                     }
-                    this.pointsContainer.position.z -= 5;
+                    this.pointsContainer.position.z -= 2;
                     this.scene.add(this.pointsContainer);//pointsContainer ist ein globales 3D-Objekt in das die Datenpunktobjekte gespeichert werden.
                     setTimeout(() => {
                         if (this.labels != null) {

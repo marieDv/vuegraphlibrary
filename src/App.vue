@@ -9,11 +9,11 @@
                v-bind:nIter="definedNIter"
                v-bind:metric="definedMetric"
                v-bind:hasImages=true
-               v-bind:labels="leaveNames"
+
+
         >
         </model>
-        <!--v-bind:labels="leaveNames"-->
-
+<!-- v-bind:labels="leaveNames"-->
         <div id="textbox"></div>
     </div>
 </template>

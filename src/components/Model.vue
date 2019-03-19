@@ -1,15 +1,11 @@
 <template>
-    <div id="container">
-        <!--<textlabels></textlabels>-->
-        <!--v-on:scroll="remapTextlabels" v-on:click="remapTextlabels"-->
+    <div ref="tsnethree" id="tsne-three">
+         <div ref="textlabels" id="tsnethree-text"/>
     </div>
 </template>
 
 <script>
     import * as Three from 'three'
-    import Model from './Textlabels'
-    import json from '../data/colors.json'
-    //    import imageOne from '../assets/leaves/iPAD2_C01_EX01_B.TIFF'
 
     export default {
         name: 'Model',
@@ -21,12 +17,13 @@
                 renderer: null,
                 mesh: null,
                 pointsMaterial: null,
-                pointsGroup: new THREE.Object3D(),
+                pointsGroup: new Three.Object3D(),
                 once: false,
-                pointsContainer: new THREE.Object3D(),
+                pointsContainer: new Three.Object3D(),
                 tsneInputData: null,
                 error: "",
-                iteration: ""
+                iteration: "",
+                windowparams: [{width: window.innerWidth, height: window.innerHeight}],
 
             }
         },
@@ -44,50 +41,39 @@
         },
         methods: {
             init: function () {
-                let container = document.getElementById('container');
 
-//                this.camera = new Three.PerspectiveCamera(190, container.clientWidth / container.clientHeight, 0.002, 2000);
-                this.camera = new THREE.PerspectiveCamera(100, container.clientWidth / container.clientHeight, 0.00002, 800);
-
-                this.camera.position.z = 20;
+                this.camera = new Three.PerspectiveCamera(100, this.$refs.tsnethree.clientWidth / this.$refs.tsnethree.clientHeight, 0.00002, 12000);
+                console.log(this.windowparams.height)
+                this.camera.position.z = 200;
                 this.camera.rotation.x = 1.5;
                 this.scene = new Three.Scene();
 
-                var light = new THREE.AmbientLight('#fff', 1.7); // soft white light
+                var light = new Three.AmbientLight('#fff', 1.7);
                 this.scene.add(light);
 
-                const color = "#c5c7cf";  // white
+                const color = "#c5c7cf";
                 const near = 1;
                 const far = 60;
-                this.scene.fog = new THREE.Fog(color, near, far);
+                this.scene.fog = new Three.Fog(color, near, far);
 
-                var light = new THREE.PointLight(0xffffff, 1, 100);
-                light.position.set(0, -1, 1);
+                var light = new Three.PointLight("#f2242d", 1, 100);
+                light.position.set(0, 6, 3);
                 light.castShadow = true;
 
-
-                var sphereSize = 1;
-                var pointLightHelper = new THREE.PointLightHelper(light, sphereSize);
-
                 this.scene.add(light);
+                this.renderer = new Three.WebGLRenderer({antialias: true, alpha: true}, {alpha:true});
+                this.renderer.setSize(this.$refs.tsnethree.clientWidth, this.$refs.tsnethree.clientHeight);
 
-                this.renderer = new Three.WebGLRenderer({antialias: true});
-                this.renderer.setSize(container.clientWidth, container.clientHeight);
-                this.renderer.setClearColor("#181818", 1);
-
-                const controls = new OrbitControls(this.camera, this.renderer.domElement);
+              const controls = new OrbitControls(this.camera, this.renderer.domElement);
                 controls.enableDamping = false;
                 controls.dampingFactor = 0.85;
                 controls.enableZoom = true;
-                controls.maxDistance = 30;
 
-                container.appendChild(this.renderer.domElement);
+              this.$refs.tsnethree.appendChild(this.renderer.domElement);
 
             },
             animate: function () {
                 setTimeout(() => {
-//                    this.pointsContainer.rotation.y += 52;
-//                    this.pointsContainer.rotation.z += 52;
                     if(this.labels != null){this.remapTextlabels();}
                 }, 1000 / 30);
                 requestAnimationFrame(this.animate);
@@ -96,7 +82,7 @@
 
             },
             toScreenPosition(obj, camera) {
-                var vector = new THREE.Vector3();
+                var vector = new Three.Vector3();
                 var widthHalf = 0.5 * this.renderer.context.canvas.width;
                 var heightHalf = 0.5 * this.renderer.context.canvas.height;
 
@@ -114,24 +100,22 @@
 
             },
             createTextLabels() {
-
-                var box = document.getElementById("textbox");
                 for (let i = 0; i < this.labels.length; i++) {
                     let label = document.createElement('p');
                     label.innerHTML += this.labels[i] + "</br>";
                     console.log(this.pointsContainer)
                     setTimeout(() => {
                         let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
-                        label.style.marginTop = (currentPos.y + container.clientHeight /2) + "px";
-                        label.style.marginLeft = ((currentPos.x) * 2 + container.clientWidth /2) + "px";
-                        box.appendChild(label);
+                        label.style.marginTop = (currentPos.y + this.$refs.tsnethree.clientHeight /2) + "px";
+                        label.style.marginLeft = ((currentPos.x) * 2 + this.$refs.tsnethree.clientWidth /2) + "px";
+                        this.$refs.textlabels.appendChild(label);
                     }, 200)
                 }
             },
             remapTextlabels() {
-                let children = document.getElementById("textbox").childNodes;
+                let children = this.$refs.textlabels.childNodes;
                 for (let i = 0; i < this.pointsContainer.children.length; i++) {
-                    let vector = new THREE.Vector3();
+                    let vector = new Three.Vector3();
                     vector.setFromMatrixPosition(this.pointsContainer.children[i].matrixWorld);
                     this.pointsContainer.children[i].geometry.verticesNeedUpdate = true;
                     let calcs = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
@@ -144,25 +128,6 @@
                 }
 
 
-            },
-
-            mapImages(i, material) {
-                var loader = new THREE.TextureLoader();
-                loader.load(
-                    i < 9 ? require('../assets/leaves/png/iPAD2_C0' + (i + 1) + '_EX01_B.png') : require('../assets/leaves/png/iPAD2_C' + (i + 1) + '_EX01_B.png'),//../assets/leaves/iPAD2_C0\' + i + \'_EX04_B.TIFF'
-                    function (texture) {
-
-                        texture.repeat.set(1, 1);
-                        material = new THREE.MeshStandardMaterial({
-                            flatshading: true,
-                            map: texture
-                        });
-                        setTimeout(() => {
-                            return material;
-                        }, 300)
-
-                    },
-                );
             },
             createTsne() {
 
@@ -183,9 +148,9 @@
                 let output = model.getOutput();
 
                 this.tsneInputData = output;
-
+                console.log(output)
                 setTimeout(() => {
-                    var geometry = new THREE.BufferGeometry();
+                    var geometry = new Three.BufferGeometry();
                     var vertices = new Float32Array([
                         -1, -1, 1,
                         1, -1, 1,
@@ -204,20 +169,19 @@
                         0, 0.9, 0.9,
                         0, 0, 0.9
                     ])
-                    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
-                    geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 3))
+                    geometry.addAttribute('position', new Three.BufferAttribute(vertices, 3));
+                    geometry.addAttribute('uv', new Three.BufferAttribute(uvs, 3))
                     geometry.computeVertexNormals()
 
                     for (let i = 0; i < this.tsneInputData.length; i++) {
                         let material;
                         if (this.hasImages) {
-                            var loader = new THREE.TextureLoader();
+                            var loader = new Three.TextureLoader();
                             loader.load(
                                 i < 9 ? require('../assets/leaves/png/iPAD2_C0' + (i + 1) + '_EX01_B.png') : require('../assets/leaves/png/iPAD2_C' + (i + 1) + '_EX01_B.png'),//../assets/leaves/iPAD2_C0\' + i + \'_EX04_B.TIFF'
                                 function (texture) {
-
                                     texture.repeat.set(1, 1);
-                                    material = new THREE.MeshStandardMaterial({
+                                    material = new Three.MeshStandardMaterial({
                                         flatshading: true,
                                         map: texture
                                     });
@@ -228,20 +192,20 @@
                                 },
                             );
                         } else {
-                            material = new THREE.MeshStandardMaterial({color: this.modelColor, flatShading: true});
+                            material = new Three.MeshStandardMaterial({color: this.modelColor, flatShading: true});
                         }
                         setTimeout(() => {
 
-                            var sphere = new THREE.Mesh(geometry, material);
+                            var sphere = new Three.Mesh(geometry, material);
 
 
-                            sphere.position.set(this.tsneInputData[i][0] * 40000, this.tsneInputData[i][1] * 40000, this.tsneInputData[i][2] * 40000)
+                            sphere.position.set(this.tsneInputData[i][0] * 1500, this.tsneInputData[i][1] *1500, this.tsneInputData[i][2] *1500);
                             this.pointsContainer.add(sphere);
                         }, 400);
 
                     }
                     this.pointsContainer.position.z -= 2;
-                    this.scene.add(this.pointsContainer);//pointsContainer ist ein globales 3D-Objekt in das die Datenpunktobjekte gespeichert werden.
+                    this.scene.add(this.pointsContainer);
                     setTimeout(() => {
                         if (this.labels != null) {
                             this.createTextLabels()
@@ -250,11 +214,22 @@
                 }, 300)
 
             },
-
+          updateDimensions() {
+            this.camera.aspect = this.$refs.tsnethree.clientWidth / this.$refs.tsnethree.clientHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(this.$refs.tsnethree.clientWidth, this.$refs.tsnethree.clientHeight);
+          }
         },
+        created: function() {
+        window.addEventListener("resize", this.updateDimensions);
 
+      },
+        destroyed: function() {
+        window.removeEventListener("resize", this.updateDimensions);
+      },
         mounted() {
-
+          this.windowparams.width = this.$refs.tsnethree.clientWidth;
+          this.windowparams.height = this.$refs.tsnethree.clientHeight;
             this.init();
             this.once === false ? this.createTsne() : this.once = true;
             setTimeout(() => {
@@ -267,10 +242,22 @@
     }
 </script>
 
-<style scoped>
-    #container {
+<style>
+    #tsne-three {
+        width: 100%;
         height: 100vh;
-        top: 0;
-        margin: 0;
+    }
+    #tsnethree-text {
+        position: absolute;
+        width: 100%;
+        pointer-events: none;
+        font-size: 10px;
+        text-align: center;
+    }
+    #tsnethree-text p {
+        position: absolute;
+        right: 0;
+        top: -50vh;
+        left: -150vw;
     }
 </style>

@@ -5,10 +5,9 @@
 </template>
 
 <script>
-    import * as Three from 'three'
-
+    import * as Three from 'three';
     export default {
-        name: 'Model',
+        name: 'Tsne-three',
         data() {
             return {
                 camera: null,
@@ -18,13 +17,10 @@
                 mesh: null,
                 pointsMaterial: null,
                 pointsGroup: new Three.Object3D(),
-                once: false,
                 pointsContainer: new Three.Object3D(),
                 tsneInputData: null,
                 error: "",
                 iteration: "",
-                windowparams: [{width: window.innerWidth, height: window.innerHeight}],
-
             }
         },
         props: {
@@ -43,7 +39,6 @@
             init: function () {
 
                 this.camera = new Three.PerspectiveCamera(100, this.$refs.tsnethree.clientWidth / this.$refs.tsnethree.clientHeight, 0.00002, 12000);
-                console.log(this.windowparams.height)
                 this.camera.position.z = 200;
                 this.camera.rotation.x = 1.5;
                 this.scene = new Three.Scene();
@@ -103,7 +98,6 @@
                 for (let i = 0; i < this.labels.length; i++) {
                     let label = document.createElement('p');
                     label.innerHTML += this.labels[i] + "</br>";
-                    console.log(this.pointsContainer)
                     setTimeout(() => {
                         let currentPos = (this.toScreenPosition(this.pointsContainer.children[i], this.camera));
                         label.style.marginTop = (currentPos.y + this.$refs.tsnethree.clientHeight /2) + "px";
@@ -148,7 +142,6 @@
                 let output = model.getOutput();
 
                 this.tsneInputData = output;
-                console.log(output)
                 setTimeout(() => {
                     var geometry = new Three.BufferGeometry();
                     var vertices = new Float32Array([
@@ -228,8 +221,6 @@
         window.removeEventListener("resize", this.updateDimensions);
       },
         mounted() {
-          this.windowparams.width = this.$refs.tsnethree.clientWidth;
-          this.windowparams.height = this.$refs.tsnethree.clientHeight;
             this.init();
             this.once === false ? this.createTsne() : this.once = true;
             setTimeout(() => {

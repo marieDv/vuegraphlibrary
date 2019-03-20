@@ -16,7 +16,7 @@
 </template>
 
 <script>
-    import Model from './components/Model'
+    import Model from './components/Tsne-three'
     import sparsematrix from './data/test.json'
     import leaves from './data/csvjson.json'
 

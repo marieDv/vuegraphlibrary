@@ -1,4 +1,4 @@
-import Model from './Model.vue';
+import Model from './Tsne-three.vue';
 
 module.exports = {
     install: function (Vue, options) {
